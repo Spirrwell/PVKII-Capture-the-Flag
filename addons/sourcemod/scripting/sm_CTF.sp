@@ -436,6 +436,16 @@ public Action:HUD_Timer(Handle:Timer, any:client)
 		{
 			SetHudTextParams(-1.0, 1.0, 0.2, 255, 255, 255, 255, 0, 6.0, 0.0, 0.0);
 			ShowHudText(client, -1, "Pirates: %d Vikings: %d Knights: %d", iPoints_Pirates, iPoints_Vikings, iPoints_Knights);
+			SetHudTextParams(0.01, 1.0, 0.2, 255, 255, 255, 255, 0, 6.0, 0.0, 0.0);
+			ShowHudText(client, -1, "Capture Limit: %d", iMaxCaptures);
+			
+			decl String:Victim[32];
+			GetFlagVictim(client, Victim, sizeof(Victim));
+			if (!StrEqual(Victim, "None", false))
+			{
+				SetHudTextParams(-1.0, 0.02, 0.2, 255, 255, 255, 255, 0, 6.0, 0.0, 0.0);
+				ShowHudText(client, -1, "Carrying %s' Flag", Victim);
+			}
 		}
 		else
 		{			
@@ -535,6 +545,7 @@ public Action:RoundStartCheer_Timer(Handle:Timer, Handle:datapack)
 
 public Action:SetPirateFlagActive_Timer(Handle:Timer)
 {
+	FlagActiveTimer[iPirates] = INVALID_HANDLE;
 	FlagRespawnTimer[iPirates] = CreateTimer(20.0, RespawnPirateFlag_Timer);
 	SetFlagActive(iPirates);
 	return Plugin_Handled;
@@ -542,6 +553,7 @@ public Action:SetPirateFlagActive_Timer(Handle:Timer)
 
 public Action:SetVikingFlagActive_Timer(Handle:Timer)
 {
+	FlagActiveTimer[iVikings] = INVALID_HANDLE;
 	FlagRespawnTimer[iVikings] = CreateTimer(20.0, RespawnVikingFlag_Timer);
 	SetFlagActive(iVikings);
 	return Plugin_Handled;
@@ -549,6 +561,7 @@ public Action:SetVikingFlagActive_Timer(Handle:Timer)
 
 public Action:SetKnightFlagActive_Timer(Handle:Timer)
 {
+	FlagActiveTimer[iKnights] = INVALID_HANDLE;
 	FlagRespawnTimer[iKnights] = CreateTimer(20.0, RespawnKnightFlag_Timer);
 	SetFlagActive(iKnights);
 	return Plugin_Handled;
@@ -603,6 +616,22 @@ public Action:RoundRestart_Timer(Handle:Timer)
 		}
 	bRoundEnd = false;
 	SetDefaults();
+	
+	for (new i = 0; i < iTeamMax; i++)
+	{
+		if (FlagActiveTimer[i] != INVALID_HANDLE)
+		{
+			CloseHandle(FlagActiveTimer[i]);
+			FlagActiveTimer[i] = INVALID_HANDLE;
+		}
+		if (FlagRespawnTimer[i] != INVALID_HANDLE)
+		{
+			CloseHandle(FlagRespawnTimer[i]);
+			FlagRespawnTimer[i] = INVALID_HANDLE;
+		}
+		RespawnFlag(i);
+	}
+	
 	return Plugin_Handled;
 }
 
