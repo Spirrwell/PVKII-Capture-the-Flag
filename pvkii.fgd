@@ -1,0 +1,483 @@
+@include "pvkbase.fgd"
+
+@PointClass base(Targetname, Angles) = env_splash :
+	"An entity that creates a splash effect at its origin. If the 'find water surface' spawnflag is set, it will instead trace down below itself to find the water surface on which to create splashes."
+[
+	scale(float) : "Scale of the splash" : "8.0"
+
+	// Inputs
+	input Splash(void) : "Create a splash effect."
+
+	spawnflags(flags) =
+	[
+		1: "Automatically find water surface (place entity above water)" : 0
+		2: "Diminish with depth (diminished completely in 10 feet of water)" : 1
+		4: "Silent" : 0
+	]
+]
+
+@BaseClass = TeamNumber
+[
+	TeamNumber(choices) : "Team Number (int)" : 0 =
+	[
+		0 : "Pirates"
+		1 : "Vikings"
+		2 : "Knights"
+	]
+]
+
+@BaseClass color(0 0 200) base(Targetname, Angles) = Weapon
+[
+	spawnflags(Flags) =
+	[
+		1 : "Start constrained" : 0
+	]
+
+	output OnPlayerUse(void) : "Fires when the player +uses this weapon"
+	output OnPlayerPickup(void) : "Fires when the player picks up this weapon"
+]
+
+@FilterClass base(BaseFilter) size(-8 -8 -8, 8 8 8) = filter_activator_team :
+	"A filter that filters by the team of the activator."
+[
+	filterteam(choices) : "Filter Team Number" : 2 : "The team number to filter by.  If the filter mode is Allow, only entities whose "+
+		"team number matches the given team will pass the filter. If the filter mode is Disallow, "+
+		"all entities EXCEPT those whose team number matches the given team will pass the filter." =
+	[
+		2 : "Pirates"
+		3 : "Vikings"
+		4 : "Knights"
+	]
+
+	input SetTeam(integer) : "Changes the team"
+]
+
+@FilterClass base(BaseFilter) size(-8 -8 -8, 8 8 8) = filter_activator_chest : "Chest filter" []
+@FilterClass base(BaseFilter) size(-8 -8 -8, 8 8 8) = filter_activator_holygrail : "Grail filter" []
+
+@PointClass base(PlayerClass, Angles, EnableDisable, Targetname, Parentname) studio("models/editor/playerstart.mdl") = info_player_pirate :
+	"This entity indicates the position and facing direction at which the player will spawn during a deathmatch map. Any number of "+
+	"info_player_deathmatch entities may be placed in a map."
+[
+	PrioritySpawn(choices) : "Priority Spawn At Round Start?" : 0 : "Should this spawn have priority in being used when spawning players during a round start?" =
+	[
+		1 : "Yes"
+		0 : "No"
+	]
+]
+
+@PointClass base(PlayerClass, Angles, EnableDisable, Targetname, Parentname) studio("models/editor/playerstart.mdl") = info_player_viking :
+	"This entity indicates the position and facing direction at which the player will spawn during a deathmatch map. Any number of "+
+	"info_player_deathmatch entities may be placed in a map."
+[
+	PrioritySpawn(choices) : "Priority Spawn At Round Start?" : 0 : "Should this spawn have priority in being used when spawning players during a round start?" =
+	[
+		1 : "Yes"
+		0 : "No"
+	]
+]
+
+@PointClass base(PlayerClass, Angles, EnableDisable, Targetname, Parentname) studio("models/editor/playerstart.mdl") = info_player_knight :
+	"This entity indicates the position and facing direction at which the player will spawn during a deathmatch map. Any number of "+
+	"info_player_deathmatch entities may be placed in a map."
+[
+	PrioritySpawn(choices) : "Priority Spawn At Round Start?" : 0 : "Should this spawn have priority in being used when spawning players during a round start?" =
+	[
+		1 : "Yes"
+		0 : "No"
+	]
+]
+
+@PointClass base(PlayerClass, Angles, EnableDisable, Targetname, Parentname) studio("models/editor/playerstart.mdl") = info_player_deathmatch :
+	"This entity indicates the position and facing direction at which the player will spawn during a deathmatch map. Any number of "+
+	"info_player_deathmatch entities may be placed in a map."
+[
+]
+
+@PointClass base( Angles, Targetname ) size(-8 -8 -8, 8 8 8) = info_point_vulture :
+	"This entity defines a location vultures will spawn from when Sudden Death begins in Last Team Standing Gamemode"
+[
+]
+
+@PointClass base(prop_physics) studioprop() sphere(fademindist) sphere(fademaxdist) = prop_physics_respawnable :
+	"This class is the same as prop_physics, except it respawns after it breaks"
+[
+	RespawnTime(float) : "Respawn Time" : 60 : "Ammount in seconds this prop will respawn after it breaks."
+
+	spawnobject(choices) : "Spawn On Break" : 0 : "When broken, an entity of the selected type will be created." =
+	[
+		1:	"item_food"
+		2:	"item_armor_pirates"
+		3:	"item_armor_vikings"
+		4:	"item_armor_knights"
+		5:	"item_ammo_flintlock"
+		6:	"item_ammo_crossbow"
+	]
+]
+
+@PointClass base(prop_dynamic) studioprop() sphere(fademindist) sphere(fademaxdist) = prop_dynamic_video :
+	"This is the same as prop_dynamic, but it renders a video for the texture"
+[
+	VideoFile(string) : "BIK File" : "media/" : "Path from the MOD folder to the bik to render"
+]
+
+@SolidClass base(Targetname, Parentname, TeamNumber, EnableDisable) = func_chestzone : "Chest Zone" []
+
+@SolidClass base(Targetname, Parentname, EnableDisable) = func_territory : "Territory"
+[
+	TerritoryIndex(integer) : "Territory Index" : 0 : "The index number of the territory. Every territory must have an unique index, which should be between 0 and 7. The index affects the ordering of the territory icons on the HUD."
+	TerritoryName(string) : "Territory Name" : "#Territory" : "The in-game name of the territory"
+	TerritoryIcon(string) : "Territory Icon" : "territory_a" : "The icon drawn on HUD for this territory. Generic territory icons (letters) that you can use are territory_a, b, c, d and e. Default icons are defined in scripts/mod_textures.txt. You can also define map-specific custom icons by creating a file called mod_textures_mapname.txt in the maps folder."
+	CapTime(float) : "Capture Time" : "10.0" : "The time it takes for a single person to capture this territory."
+	HealthRegen(float) : "Health Regen Rate" : "1.5" : "Health per second gain for the owning team."
+	ArmorRegen(float) : "Armor Regen Rate" : "1.5" : "Armor per second gain for the owning team."
+	SpecialRegen(float) : "Special Regen Rate" : "1.5" : "Special per second gain for the owning team."
+
+	spawnflags(flags) =
+	[
+		1: "Health regen" : 0
+		2: "Armor regen" : 0
+		4: "Special regen" : 0
+		8: "Add health on capture" : 0
+		16: "Add armor on capture" : 0
+		32: "Add special on capture" : 0
+		64: "Regen even if contested" : 0
+	]
+
+	output OnTerritoryPirates(void)
+	output OnTerritoryVikings(void)
+	output OnTerritoryKnights(void)
+	output OnTerritoryUnoccupied(void)
+]
+
+@BaseClass base(Targetname, Parentname, EnableDisable) = BaseZone
+[
+	filtername(filterclass) : "Filter Name" : : "Filter to use to see if activator triggers me. See filter_activator_name for more explanation."
+]
+
+@SolidClass base(BaseZone) = trigger_speed : "Falling Death Trigger"
+[
+	speed(float) : "Speed multiplier" : "0.5" : "The speed of any players inside the trigger will be multiplied by this value."
+]
+
+@SolidClass base(BaseZone) = trigger_noattack : "Demilitarized Zone" []
+
+@SolidClass base(BaseZone) = trigger_nosuicide : "Dr.Kevorkian can't save you now muhahaha :D" []
+
+@SolidClass base(BaseZone) = trigger_falldeath : "Falling Death Trigger"
+[
+	z_offset(float) : "Fall View Z Offset" : 64 : "How much to move the view from the surface of the trigger when viewing a fall death."
+
+	y_rotation(float) : "Fall View Y Rotation" : "0.5" : "How fast the View spins on the Y axis when in the falling view"
+
+	followragdoll(choices) : "Falling Cam Mode" : 1 :"What ragdoll fall cam mode to use" =
+	[
+		0:	"No Movement"
+		1:	"Follow Laterally"
+		2:	"Fixed View Entity"
+		3:	"Follow From View Entity"
+	]
+
+	lookfrom(string)	: "View Entity" : "" : "Entity to base view on if proper fall cam mode is selected that uses it"
+
+	nosuicide(choices) : "Suicide State" : 0 : "Does death from this cause a suicide?" =
+	[
+		0:	"Yes"
+		1:	"No"
+	]
+]
+
+
+@PointClass base(Targetname) studio("models/props/flagpole/flagpole.mdl") = flag : "Flag"
+[
+	FlagType(choices) : "Flag Type" : 0 =
+	[
+		0 : "None"
+		1 : "Pirates"
+		2 : "Vikings"
+		3 : "Knights"
+	]
+
+	Territory(target_destination) : "Territory" : "" : "Use this to link the flag to a func_territory"
+
+	input ChangeFlag(integer) : "Changes the flag"
+]
+
+@PointClass base(Weapon) studio("models/props/chest/chest.mdl") = weapon_chest : "Treasure Chest" []
+@PointClass base(Weapon) studio("models/props/holy_grail.mdl") = item_holygrail : "Holy Grail" []
+@PointClass base(Weapon) studio("models/props/drinkinghorn.mdl") = item_horncup : "Drinking Horn" []
+@PointClass base(Weapon) studio("models/props/grogcup.mdl") = item_grogcup : "Grog Cup" []
+
+@PointClass base(Targetname, Parentname, EnableDisable) =
+info_objective_point : "Objective Visualization Point for Objective Push Gamemode"
+[
+	objective_material(string) : "Objective Material" : "sprits/holygrail" : "The material to draw at this objective point when it is enabled."
+]
+
+@PointClass base(Targetname) = info_pvk
+[
+	Gamemode(choices) : "Game mode" : 0 =
+	[
+		0 : "Deathmatch"
+		1 : "Booty"
+		2 : "Trinket Wars"
+		3 : "Territory"
+		5 : "Last Team Standing"
+		6 : "Objective Push"
+		7 : "Capture the Flag"
+	]
+
+	DisabledTeam(choices) : "Disable team" : 0 =
+	[
+		0 : "None"
+		1 : "Spectators"
+		2 : "Pirates"
+		3 : "Vikings"
+		4 : "Knights"
+	]
+
+	DisableFallDmg(choices) : "Disable Fall Damage" : 0 =
+	[
+		0 : "No"
+		1 : "Yes"
+	]
+
+	PTimer(float) : "P Timer Add (minutes)" : "0.0"
+	VTimer(float) : "V Timer Add (minutes)" : "0.0"
+	KTimer(float) : "K Timer Add (minutes)" : "0.0"
+
+	TerritoryWinCondition(choices) : "Territory Win Condition" : 0 =
+	[
+		0 : "Timer"
+		1 : "Capture All Territories + Timer"
+	]
+
+	TerritoryWinDelay(float) : "Territory Win Delay" : "30.0" : "Delay (in seconds) before a team wins when holding all territories"
+
+	BootyChestLockTime(float) : "Booty Chest Lock Time" : "30.0" : "Delay (in seconds) before chests can be picked up"
+
+	SuddenDeathTime(float) : "Sudden Death Duration (seconds)" : "0.0"
+
+	output OnTerritoryPirates(void)
+	output OnTerritoryVikings(void)
+	output OnTerritoryKnights(void)
+	output OnTerritoryUnoccupied(void)
+
+	output OnSuddenDeath(void)
+
+	output OnRoundRestart(void)
+	output PreRoundRestart(void)
+
+	input AddToRoundTimer(float) : "Add time to timer in Time Based Round GameModes"
+
+	input SubtractFromRoundTimer(float) : "Subtract time from timer in Time Based Round GameModes"
+
+	input SetRoundTimer(float) : "Set the time for timer in Time Based Round GameModes"
+
+	input ForceEndRound(integer) : "Ends the round. Parameter is the team. 2 = Pirates, 3 = Vikings, 4 = Knights. Other numbers induces a Tie Game"
+
+	input SetWinnerTimeOver(integer) : "Sets the winner of an Objective Push Gamemode when the time has run out. May be used as many times throughout the round till the timer reaches 0"
+]
+
+@SolidClass = func_ladder :
+	"Ladder. Players will be able to freely along this brush, as if it was a ladder. If you are using a model prop " +
+	"for the visual representation of the ladder in the map, apply the toolsinvisibleladder material to the " +
+	"func_ladder brush."
+[
+]
+
+@PointClass base(Targetname, Parentname) size(-8 -8 -8, 8 8 8) = env_cannon :
+	"An entity that shoots cannonballs and firebombs."
+[
+	angles(string) : "Direction (Pitch Yaw Roll)" : "0 0 0" : "The direction the shots will fly."
+	shots(integer) : "Number of shots" : 0 : "Total number of shots. (0 = Unlimited)"
+	delay(string) : "Delay between shots" : "0" : "Delay (in seconds) between shots."
+	shootmodel(studio) : "Projectile Model" : "models/props/seige/cannonball.mdl" : "Thing to shoot out."
+	m_flVelocity(integer) : "Velocity" : 200 : "Speed of the fired shots"
+	m_flVariance(float) : "Course Variance" : "0.15" : "How much variance in the direction shots are fired."
+	explosionMagnitude(float) : "Explosion Magnitude" : "0" : "If non-zero, when this entity breaks it will create an explosion that causes the specified amount of damage."
+	lifeTime(float) : "Life Time" : "5.0" : "Amount of time before the projectile disappears."
+
+	projectileType(choices) : "Projectile type" : 0 =
+	[
+		0 : "Cannonball"
+		1 : "Firebomb"
+	]
+
+	input Shoot(void)
+	output OnShoot(void)
+]
+
+@SolidClass base(func_physbox) = func_physbox_multiplayer :
+	"This class is the same as func_physbox, except the runtime collisions use a more bouncy method that avoids " +
+	"the prediction errors normal physics objects get."
+[
+]
+
+@NPCClass base(BaseNPC) studio("models/crow.mdl") = npc_crow : "Crow"
+[
+	input FlyAway( string ) : "Forces the crow to fly to the nearest crow flyto hint node."
+]
+
+@NPCClass base(BaseNPC) studio("models/seagull.mdl") = npc_seagull : "Seagull"
+[
+	input FlyAway( string ) : "Forces the seagull to fly to the nearest crow flyto hint node."
+]
+
+@NPCClass base(BaseNPC) studio("models/pigeon.mdl") = npc_pigeon : "Pigeon"
+[
+	input FlyAway( string ) : "Forces the pigeon to fly to the nearest crow flyto hint node."
+]
+
+@PointClass base(Targetname, Angles) size(16 16 16) line(255 255 255, targetname, target) color(247 181 82) = path_corner : "Generic path point"
+[
+	spawnflags(Flags) =
+	[
+		1: "Wait for retrigger" : 0
+		2: "Teleport to THIS path_corner" : 0
+	]
+	target(target_destination) : "Next stop target"
+	wait(integer) : "Wait here (secs)" : 0
+	speed(integer) : "New Train Speed" : 0
+	yaw_speed(integer) : "New Train rot. Speed" : 0
+
+	// Inputs
+	input SetNextPathCorner(string) : "Sets next pathcorner"
+
+	// Outputs
+	output OnPass(void) : "Fires when a path follower passes this point"
+]
+
+//-------------------------------------------------------------------------
+//
+// Items
+//
+//-------------------------------------------------------------------------
+@BaseClass color(0 0 200) base(Targetname, Angles, Shadow) = Item
+[
+	output OnPlayerTouch(void) : "Fires when the player touches this object"
+]
+
+@PointClass base(Item) studio("models/props/turkey/turkey.mdl") = item_food : "Food" []
+@PointClass base(Item) studio("models/pistolammo.mdl") = item_ammo : "Ammo" []
+@PointClass base(Item) studio("models/props/armor/platearmor.mdl") = item_armor : "Armor" []
+
+//@PointClass base(Item) studio("models/props/armor/clotharmor.mdl") = item_armor_pirates : "Armor for pirates" []
+//@PointClass base(Item) studio("models/props/armor/chainarmor.mdl") = item_armor_vikings : "Armor for vikings" []
+//@PointClass base(Item) studio("models/props/armor/platearmor.mdl") = item_armor_knights : "Armor for knights" []
+//@PointClass base(Item) studio("models/pistolammo.mdl") = item_ammo_pirate : "Pirate ammo" []
+//@PointClass base(Item) studio("models/crossbowammo.mdl") = item_ammo_knight : "Knight ammo" []
+//@PointClass base(Item) studio("models/weapons/w_throwingaxe/w_throwingaxe.mdl") = item_ammo_viking : "Viking ammo" []
+
+//-------------------------------------------------------------------------
+//
+// Camera/monitor entities
+//
+//-------------------------------------------------------------------------
+@PointClass base(Parentname, Angles) studioprop("models/editor/camera.mdl") = point_camera : "Camera"
+[
+	spawnflags(Flags) =
+	[
+		1 : "Start Off" : 0
+	]
+
+	targetname(target_source) : "Name" : : "The name that other entities refer to this entity by."
+	FOV(float) : "FOV" : 90 : "Field of view in degrees"
+//	resolution(float) : "resolution" : 256 : "width/height of the render target for the camera"
+	UseScreenAspectRatio(choices) : "Screen Aspect Ratio" : 0 =
+	[
+		0 : "No"
+		1 : "Yes"
+	]
+	fogEnable(choices) : "Fog Enable" : 0 =
+	[
+		0 : "No"
+		1 : "Yes"
+	]
+	fogColor(color255) : "Fog Color" : "0 0 0"
+	fogStart(float) : "Fog Start" : 2048 : "The near fog plane."
+	fogEnd(float) : "Fog End" : 4096 : "The far fog/clipping plane."
+	fogMaxDensity(float) : "Fog Max Density [0..1]" : 1 : "The maximum fog density. 0=no fog, 1=full fog."
+
+	// Inputs
+	input ChangeFOV(string) : "Changes camera's FOV over time"
+	input SetOnAndTurnOthersOff(void) : "Turn the camera on, and turn all other cameras off."
+	input SetOn(void) : "Turn the camera on."
+	input SetOff(void) : "Turn the camera off."
+]
+
+//-------------------------------------------------------------------------
+//
+// Vehicles.
+//
+//-------------------------------------------------------------------------
+@BaseClass base(Targetname, Origin, Global, prop_static_base) = BaseVehicle
+[
+	vehiclescript(string) : "Vehicle Script File" : "scripts/vehicles/jeep_test.txt"
+	actionScale(float) : "Scale of action input / framerate" : "1"
+
+	// Inputs
+	input Action(float) : "Set the speed of the action animation"
+
+	input TurnOn(void) : "Turn on: Start engine & enable throttle"
+	input TurnOff(void) : "Turn off: Stop engine, disable throttle, engage brakes."
+
+	input Lock(void) : "Prevent the player from entering or exiting the vehicle."
+	input Unlock(void) : "Re-allow the player to enter or exit the vehicle."
+]
+
+
+@BaseClass base(BaseVehicle) = BaseDriveableVehicle
+[
+	VehicleLocked(choices) : "Start locked" : 0 =
+	[
+		0 : "No"
+		1 : "Yes"
+	]
+
+	// Outputs
+	output PlayerOn(void) : "Player entered the vehicle"
+	output PlayerOff(void) : "Player exited the vehicle"
+
+	output PressedAttack(void) : "Player Pressed attack key"
+	output PressedAttack2(void) : "Player Pressed attack2 key"
+
+	output AttackAxis(string) : "State of attack button [0,1]"
+	output Attack2Axis(string) : "State of attack2 button [0,1]"
+
+	// Inputs
+	input HandBrakeOn(void) : "Turns the handbrake on"
+	input HandBrakeOff(void): "Releases the handbrake"
+]
+
+@PointClass base(BaseVehicle) studioprop() = prop_vehicle :
+	"Studiomodel vehicle that can be driven via inputs."
+[
+	// Inputs
+	input Steer(float) : "Steer the vehicle +/-1"
+	input Throttle(float) : "Throttle +/-1"
+
+	spawnflags(flags) =
+	[
+		1 : "Always Think (Run physics every frame)" : 0
+	]
+]
+
+
+@PointClass base(BaseDriveableVehicle) studioprop() = prop_vehicle_driveable :
+	"Generic driveable studiomodel vehicle."
+[
+]
+
+@PointClass base(Angles, Targetname, Studiomodel) studioprop() = prop_ragdoll_multiplayer :
+	"A prop that physically simulates and can be articulated with internal joints. The joint constraints are part of the physics model. Creates it on the client."
+[
+	angleOverride(string) : "Override Animation" : "" : "Filled in by the engine via wc_update_entity, do not edit by hand except to clear."
+]
+
+@PointClass base(Targetname, Parentname) sphere(radius) = point_hell_effect: "Hell Effect Comptroller"
+[
+	radius(float) : "Radius" : 8 : "Radius of the effect when active"
+
+	input SetRadius(vector) : "Sets a new radius and time to interpolate to it(as a vector <Size> <Time in Seconds>)."
+]

@@ -1,0 +1,14 @@
+"Games"
+{
+	"pvkii"
+	{
+		"Offsets"
+		{
+			"GetKeyValue"
+			{
+				"windows"	"33"
+				"linux"		"34"
+			}
+		}
+	}
+}
