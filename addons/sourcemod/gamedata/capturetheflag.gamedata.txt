@@ -4,10 +4,10 @@
 	{
 		"Offsets"
 		{
-			"GetKeyValue"
+			"Spawn"
 			{
-				"windows"	"33"
-				"linux"		"34"
+				"windows"	"23"
+				"linux"		"24"
 			}
 		}
 	}
